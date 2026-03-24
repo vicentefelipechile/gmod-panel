@@ -1,0 +1,7 @@
+{
+    "title": "GModPanel",
+    "description": "Serverless Garry's Mod server dashboard — powered by Cloudflare Workers.",
+    "type": "gamemode",
+    "tags": ["admin", "dashboard", "panel"],
+    "ignore": []
+}
