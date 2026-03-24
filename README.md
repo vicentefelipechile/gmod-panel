@@ -15,12 +15,12 @@ A single Lua addon is installed on the GMod server. On first boot it enters a gu
 ```
 GMod Server (Lua)
     │
-    ├─ POST /api/v1/heartbeat  (every 30s)    ──→  Cloudflare Worker (Hono)
-    ├─ POST /api/v1/event      (immediate)     ──→    ├─ D1 (SQL)     long-term storage
-    └─ POST /api/v1/command/ack               ──→    ├─ KV           live state, cmd queues
-                                                      └─ Durable Objects  WebSocket hub
-                                                              │
-                                               Browser SPA ──┘
+    ├─ POST /api/v1/heartbeat  (every 30s)  =>  Cloudflare Worker (Hono)
+    ├─ POST /api/v1/event      (immediate)  =>  ├─ D1 (SQL)         long-term storage
+    └─ POST /api/v1/command/ack             =>  ├─ KV               live state, cmd queues
+                                                └─ Durable Objects  WebSocket hub
+                                                            │
+                                               Browser SPA ─┘
                                             (served from ./app/dist)
 ```
 
