@@ -96,24 +96,20 @@ app.get("/callback", async (c) => {
 	let displayName = steamid64;
 	let avatarUrl: string | null = null;
 
-	// STEAM_API_KEY is a runtime secret — not in the generated Env type
-	const steamApiKey = (c.env as unknown as Record<string, string>)["STEAM_API_KEY"];
-	if (steamApiKey) {
-		try {
-			const profileRes = await fetch(
-				`${STEAM_API_BASE}/ISteamUser/GetPlayerSummaries/v2/?key=${steamApiKey}&steamids=${steamid64}`
-			);
-			const profile = await profileRes.json<{
-				response: { players: Array<{ personaname: string; avatarfull: string }> };
-			}>();
-			const player = profile.response.players[0];
-			if (player) {
-				displayName = player.personaname;
-				avatarUrl = player.avatarfull;
-			}
-		} catch {
-			// Profile fetch is non-critical; proceed without it
+	try {
+		const profileRes = await fetch(
+			`${STEAM_API_BASE}/ISteamUser/GetPlayerSummaries/v2/?key=${c.env.STEAM_API_KEY}&steamids=${steamid64}`
+		);
+		const profile = await profileRes.json<{
+			response: { players: Array<{ personaname: string; avatarfull: string }> };
+		}>();
+		const player = profile.response.players[0];
+		if (player) {
+			displayName = player.personaname;
+			avatarUrl = player.avatarfull;
 		}
+	} catch {
+		// Profile fetch is non-critical; proceed without it
 	}
 
 	// Upsert user in D1
