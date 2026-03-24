@@ -1,0 +1,27 @@
+/* =========================================================================
+   styles/modal.css — Modal dialog
+   ========================================================================= */
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  animation: fade-in 150ms ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 480px; max-width: 90vw;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  animation: modal-in 200ms ease;
+}
+@keyframes modal-in { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+
+.modal-title  { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }

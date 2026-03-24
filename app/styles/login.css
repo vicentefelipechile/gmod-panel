@@ -1,0 +1,75 @@
+/* =========================================================================
+   styles/login.css — Login / unauthenticated view
+   ========================================================================= */
+
+.login-page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-base);
+
+  /* Single subtle noise texture-like gradient — not the AI blob style */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(249,115,22,0.07) 0%, transparent 100%);
+}
+
+.login-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  padding: 44px 40px;
+  width: 400px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+/* Wordmark — text-based, no gradient box */
+.login-wordmark {
+  margin: 0 auto 28px;
+}
+
+.login-wordmark-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.login-wordmark-name span {
+  color: var(--orange);
+}
+
+.login-wordmark-sub {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.login-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.btn-steam {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 16px;
+  background: #1b2838;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  color: #c7d5e0;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background var(--t), border-color var(--t);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+.btn-steam:hover {
+  background: #233344;
+  border-color: rgba(255,255,255,0.14);
+}

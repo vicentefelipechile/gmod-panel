@@ -1,0 +1,160 @@
+/* =========================================================================
+   styles/components.css — Cards, buttons, badges, forms, status pills
+   ========================================================================= */
+
+/* --- Cards --- */
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: border-color var(--t);
+}
+.card:hover { border-color: var(--border-accent); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title    { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* --- Stat card --- */
+.stat-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--t), transform var(--t);
+}
+/* No colored top-bar stripe — that's the AI pattern we're removing */
+.stat-card:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.stat-sub { font-size: 12px; color: var(--text-muted); }
+
+/* Stat accent dot — subtle color indicator in corner instead of full top bar */
+.stat-card .stat-icon {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-card.cyan   .stat-icon { background: var(--blue-dim);   color: var(--blue); }
+.stat-card.purple .stat-icon { background: var(--purple-dim); color: var(--purple); }
+.stat-card.green  .stat-icon { background: var(--green-dim);  color: var(--green); }
+.stat-card.yellow .stat-icon { background: var(--yellow-dim); color: var(--yellow); }
+.stat-card.red    .stat-icon { background: var(--red-dim);    color: var(--red); }
+.stat-card.orange .stat-icon { background: var(--orange-dim); color: var(--orange); }
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border: 1px solid transparent;
+  border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  transition: all var(--t); cursor: pointer; white-space: nowrap;
+  font-family: var(--font-sans);
+}
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+
+.btn-primary  { background: var(--orange); color: #fff; border-color: var(--orange); }
+.btn-primary:hover  { filter: brightness(1.1); }
+
+.btn-secondary { background: transparent; color: var(--text-secondary); border-color: var(--border-accent); }
+.btn-secondary:hover { border-color: var(--border-focus); color: var(--text-primary); background: var(--orange-dim); }
+
+.btn-danger   { background: var(--red-dim); color: var(--red); border-color: rgba(239,68,68,0.25); }
+.btn-danger:hover   { background: rgba(239,68,68,0.18); }
+
+.btn-ghost    { background: transparent; color: var(--text-muted); }
+.btn-ghost:hover    { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-lg { padding: 10px 20px; font-size: 14px; }
+
+/* --- Badges --- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.2px;
+}
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+.badge-red    { background: var(--red-dim);    color: var(--red); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-cyan   { background: var(--blue-dim);   color: var(--blue); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }
+.badge-muted  { background: rgba(82,82,91,.2); color: var(--text-muted); }
+
+.badge-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+  animation: pulse-dot 2.5s infinite;
+}
+@keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+
+/* --- Forms --- */
+.form-group   { display: flex; flex-direction: column; gap: 6px; }
+.form-label   { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+
+.form-input, .form-select, .form-textarea {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px; color: var(--text-primary);
+  font-size: 13px; transition: border-color var(--t); width: 100%;
+  font-family: var(--font-sans);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--orange); box-shadow: 0 0 0 2px var(--orange-dim);
+}
+.form-input::placeholder { color: var(--text-muted); }
+.form-textarea  { resize: vertical; min-height: 80px; }
+.form-select    { appearance: none; cursor: pointer; }
+.form-select option { background: var(--bg-elevated); }
+
+/* --- Status pill --- */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 4px;
+  font-size: 12px; font-weight: 500;
+}
+.status-pill.online  { background: var(--green-dim); color: var(--green); }
+.status-pill.offline { background: rgba(82,82,91,.15); color: var(--text-muted); }
+
+/* --- Topbar --- */
+.topbar-breadcrumb {
+  font-size: 13px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.topbar-breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.topbar-spacer { flex: 1; }
+.topbar-avatar {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  object-fit: cover; cursor: pointer;
+  border: 1px solid var(--border-accent);
+  transition: border-color var(--t), opacity var(--t);
+}
+.topbar-avatar:hover { border-color: var(--orange); opacity: 0.9; }

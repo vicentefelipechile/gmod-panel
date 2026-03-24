@@ -1,0 +1,55 @@
+/* =========================================================================
+   styles/event-feed.css — Event feed and player card components
+   ========================================================================= */
+
+/* --- Event feed --- */
+.event-feed { display: flex; flex-direction: column; gap: 1px; }
+
+.event-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  transition: background var(--t);
+  animation: slide-in 200ms ease;
+}
+.event-item:hover { background: rgba(255, 255, 255, 0.03); }
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.event-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0; margin-top: 1px;
+}
+.event-icon.join    { background: var(--green-dim);            color: var(--green); }
+.event-icon.leave   { background: var(--red-dim);              color: var(--red); }
+.event-icon.death   { background: var(--yellow-dim);           color: var(--yellow); }
+.event-icon.chat    { background: var(--blue-dim);             color: var(--blue); }
+.event-icon.map     { background: var(--purple-dim);           color: var(--purple); }
+.event-icon.default { background: rgba(71,85,105,.2);          color: var(--text-muted); }
+
+.event-body  { flex: 1; min-width: 0; }
+.event-text  { font-size: 13px; }
+.event-text strong { font-weight: 600; }
+.event-time  { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-family: var(--font-mono); }
+
+/* --- Player card --- */
+.player-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  transition: background var(--t);
+}
+.player-card:hover { background: rgba(255, 255, 255, 0.03); }
+
+.player-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg-overlay);
+  flex-shrink: 0; object-fit: cover;
+}
+.player-name { font-size: 13.5px; font-weight: 500; }
+.player-info { font-size: 12px; color: var(--text-muted); margin-top: 1px; font-family: var(--font-mono); }
+
+.player-actions { margin-left: auto; display: flex; gap: 4px; opacity: 0; transition: opacity var(--t); }
+.player-card:hover .player-actions { opacity: 1; }

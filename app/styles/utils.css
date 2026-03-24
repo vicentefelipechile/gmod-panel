@@ -1,0 +1,21 @@
+/* =========================================================================
+   styles/utils.css — Utility / helper classes
+   ========================================================================= */
+
+.flex           { display: flex; }
+.flex-col       { flex-direction: column; }
+.items-center   { align-items: center; }
+.justify-between{ justify-content: space-between; }
+.gap-2          { gap: 8px; }
+.gap-3          { gap: 12px; }
+.gap-4          { gap: 16px; }
+.mt-2           { margin-top: 8px; }
+.mt-4           { margin-top: 16px; }
+.mb-4           { margin-bottom: 16px; }
+.mb-6           { margin-bottom: 24px; }
+.w-full         { width: 100%; }
+.text-muted     { color: var(--text-muted); }
+.text-sm        { font-size: 12px; }
+.font-mono      { font-family: var(--font-mono); }
+.truncate       { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hidden         { display: none !important; }
