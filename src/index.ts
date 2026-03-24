@@ -1,26 +1,71 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+// =========================================================================
+// src/index.ts
+// GModPanel Worker entry point — Hono app bootstrap with all route mounts.
+// Serves /api/v1/* and /auth/* routes; all other routes return the SPA.
+// =========================================================================
 
-export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		const url = new URL(request.url);
-		switch (url.pathname) {
-			case '/message':
-				return new Response('Hello, World!');
-			case '/random':
-				return new Response(crypto.randomUUID());
-			default:
-				return new Response('Not Found', { status: 404 });
-		}
-	},
-} satisfies ExportedHandler<Env>;
+// =========================================================================
+// Imports
+// =========================================================================
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+
+import setupRoutes from "./routes/server/setup";
+import handshakeRoute from "./routes/server/handshake";
+import heartbeatRoute from "./routes/server/heartbeat";
+import eventRoute from "./routes/server/event";
+import commandRoute from "./routes/server/command";
+
+import steamRoutes from "./routes/auth/steam";
+
+import serverRoutes from "./routes/dashboard/servers";
+import statsRoutes from "./routes/dashboard/stats";
+import playerRoutes from "./routes/dashboard/players";
+import warningRoutes from "./routes/dashboard/warnings";
+
+import { verifyDashboardSession } from "./middleware/verifyDashboardSession";
+import type { HonoVars } from "./types";
+
+export { ServerHub } from "./objects/ServerHub";
+
+// =========================================================================
+// App Bootstrap
+// =========================================================================
+
+const app = new Hono<{ Bindings: Env; Variables: HonoVars }>();
+
+app.use("*", cors({
+    origin: "*",
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
+
+// =========================================================================
+// Routes
+// =========================================================================
+
+// --- Server-facing ---
+app.route("/api/v1/setup", setupRoutes);
+app.route("/api/v1/handshake", handshakeRoute);
+app.route("/api/v1/heartbeat", heartbeatRoute);
+app.route("/api/v1/event", eventRoute);
+app.route("/api/v1/command", commandRoute);
+
+// --- Auth ---
+app.route("/auth/steam", steamRoutes);
+
+// Setup confirm requires dashboard session
+app.use("/api/v1/setup/confirm", verifyDashboardSession);
+
+// --- Dashboard ---
+app.route("/api/v1/servers", serverRoutes);
+app.route("/api/v1/servers", statsRoutes);
+app.route("/api/v1/players", playerRoutes);
+app.route("/api/v1/servers", warningRoutes);
+
+// =========================================================================
+// Export
+// =========================================================================
+
+export default app;
+
