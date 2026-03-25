@@ -6,12 +6,6 @@
 --------------------------------------------------------------------]]--
 
 --[[--------------------------------------------------------------------
-    Variables
---------------------------------------------------------------------]]--
-
--- (none — all state lives in GModPanel.Session and GModPanel.Config)
-
---[[--------------------------------------------------------------------
     Functions
 --------------------------------------------------------------------]]--
 
@@ -42,10 +36,12 @@ end
 local function DoHeartbeat()
     local payload = BuildPayload()
 
-    http.Post(
-        GModPanel.Config.api_base .. "/api/v1/heartbeat",
-        payload,
-        function(body, _, _, code)
+    HTTP({
+        url = GModPanel.Config.api_base .. "/api/v1/heartbeat",
+        method = "POST",
+        headers = GModPanel.AuthHeaders(),
+        body = payload,
+        success = function(code, body, headers)
             if code == 401 then
                 -- Session was invalidated server-side; re-handshake immediately
                 GModPanel.Session.token = nil
@@ -64,11 +60,10 @@ local function DoHeartbeat()
                 GModPanel.ProcessCommands(res)
             end
         end,
-        function(err)
+        failed = function(err)
             GModPanel.Warn("Heartbeat error: ", tostring(err))
-        end,
-        GModPanel.AuthHeaders()
-    )
+        end
+    })
 end
 
 --[[--------------------------------------------------------------------

@@ -11,23 +11,33 @@
 
 local PREFIX = "[GModPanel] "
 
+local COLOR_WARN = Color(255, 200, 50)
+local COLOR_ERROR = Color(255, 80, 80)
+local COLOR_INFO = Color(120, 200, 255)
+
 --[[--------------------------------------------------------------------
     Functions
 --------------------------------------------------------------------]]--
 
+local function ts(...)
+    local t = ""
+    for _, v in ipairs({...}) do
+        t = t .. tostring(v) .. " "
+    end
+
+    return t
+end
+
 function GModPanel.Print(...)
-    MsgC(Color(120, 200, 255), PREFIX)
-    MsgC(Color(255, 255, 255), ..., "\n")
+    MsgC(COLOR_INFO, PREFIX, color_white, ts(...) .. "\n")
 end
 
 function GModPanel.Warn(...)
-    MsgC(Color(255, 200, 50), PREFIX .. "[WARN] ")
-    MsgC(Color(255, 255, 255), ..., "\n")
+    MsgC(COLOR_WARN, PREFIX, color_white, "WARN " .. ts(...) .. "\n")
 end
 
 function GModPanel.Error(...)
-    MsgC(Color(255, 80, 80), PREFIX .. "[ERROR] ")
-    MsgC(Color(255, 255, 255), ..., "\n")
+    MsgC(COLOR_ERROR, PREFIX, color_white, "ERROR " .. ts(...) .. "\n")
 end
 
 function GModPanel.FindPlayer(steamid64)

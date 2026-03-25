@@ -108,16 +108,16 @@ function GModPanel.LoadIdentity(callback)
     -- For simplicity in the MVP, we store server_id unobfuscated at the very end
     -- of the file as a JSON comment (not ideal; a real implementation would use
     -- a structured binary format with a plaintext header section).
-    local sid_raw = file.Read("gmodpanel.dat.meta", "DATA")
+    local sid_raw = file.Read("gmodpanel.dat.txt", "DATA")
     if not sid_raw then
-        GModPanel.Error("gmodpanel.dat.meta missing — cannot retrieve dat_key.")
+        GModPanel.Error("gmodpanel.dat.txt missing — cannot retrieve dat_key.")
         callback(false)
         return
     end
 
     local meta = util.JSONToTable(sid_raw)
     if not meta or not meta.server_id then
-        GModPanel.Error("gmodpanel.dat.meta malformed.")
+        GModPanel.Error("gmodpanel.dat.txt malformed.")
         callback(false)
         return
     end
@@ -136,10 +136,12 @@ function GModPanel.Handshake(callback)
         timestamp = os.time(),
     })
 
-    http.Post(
-        GModPanel.Config.api_base .. "/api/v1/handshake",
-        payload,
-        function(body, _, _, code)
+    HTTP({
+        url = GModPanel.Config.api_base .. "/api/v1/handshake",
+        method = "POST",
+        headers = { ["Content-Type"] = "application/json" },
+        body = payload,
+        success = function(code, body, headers)
             if code ~= 200 then
                 GModPanel.Error("Handshake failed: HTTP ", tostring(code))
                 return
@@ -157,11 +159,10 @@ function GModPanel.Handshake(callback)
 
             if callback then callback() end
         end,
-        function(err)
+        failed = function(err)
             GModPanel.Error("Handshake error: ", tostring(err))
-        end,
-        { ["Content-Type"] = "application/json" }
-    )
+        end
+    })
 end
 
 -- Returns auth headers for any outbound request

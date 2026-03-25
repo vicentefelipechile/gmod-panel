@@ -76,9 +76,7 @@ net.Receive("GModPanel_SetupCode", function()
     local code = net.ReadString()
     local url  = net.ReadString()
 
-    if LocalPlayer():IsSuperAdmin() then
-        CreateSetupUI(code, url)
-    end
+    CreateSetupUI(code, url)
 end)
 
 net.Receive("GModPanel_SetupComplete", function()

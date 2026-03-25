@@ -22,7 +22,7 @@ local function OnSetupComplete(server_id, api_key)
     GModPanel.WriteIdentity(server_id, api_key, dat_key)
 
     -- Also write a plaintext meta file with just server_id for restart recovery
-    file.Write("gmodpanel.dat.meta", util.TableToJSON({ server_id = server_id }))
+    file.Write("gmodpanel.dat.txt", util.TableToJSON({ server_id = server_id }))
 
     -- Reset in-memory dat_key (stays alive for this session only)
     -- dat_key is intentionally not set to nil here — kept alive for this session's
@@ -37,36 +37,6 @@ local function OnSetupComplete(server_id, api_key)
     end)
 end
 
-local function PollSetup()
-    if not setup_code then return end
-
-    http.Fetch(
-        GModPanel.Config.api_base .. "/api/v1/setup/poll?code=" .. setup_code,
-        function(body, _, _, code)
-            if code == 202 then
-                -- Still waiting — continue polling
-                return
-            end
-
-            if code == 200 then
-                local res = util.JSONToTable(body)
-                if res and res.server_id and res.api_key then
-                    timer.Remove("GModPanel_SetupPoll")
-                    OnSetupComplete(res.server_id, res.api_key)
-                end
-                return
-            end
-
-            -- Code expired or error
-            GModPanel.Error("Setup poll error: HTTP ", tostring(code), " — retrying setup.")
-            timer.Remove("GModPanel_SetupPoll")
-            GModPanel.StartSetup()
-        end,
-        function(err)
-            GModPanel.Warn("Setup poll fetch error: ", tostring(err))
-        end
-    )
-end
 
 function GModPanel.StartSetup()
     GModPanel.Print("Requesting setup code from Worker...")
@@ -95,14 +65,20 @@ function GModPanel.StartSetup()
             GModPanel.Print("Linking code: ", setup_code, "  (expires in 10 min)")
             GModPanel.Print("=========================================")
 
+            local plys = {}
+            for _, ply in ipairs(player.GetAll()) do
+                if ply:IsSuperAdmin() then
+                    table.insert(plys, ply)
+                end
+            end
+
             -- Notify GUI
             net.Start("GModPanel_SetupCode")
-            net.WriteString(setup_code)
-            net.WriteString(res.setup_url or "")
-            net.Send(player.GetAll())
+                net.WriteString(setup_code)
+                net.WriteString(res.setup_url or "")
+            net.Send(plys)
 
-            -- Start polling every 5 seconds
-            timer.Create("GModPanel_SetupPoll", 5, 0, PollSetup)
+            GModPanel.Print("Waiting for dashboard confirmation. Please register at the link above.")
         end,
         function(err)
             GModPanel.Error("Setup fetch error: ", tostring(err))
@@ -111,8 +87,57 @@ function GModPanel.StartSetup()
 end
 
 --[[--------------------------------------------------------------------
-    Init
+    Commands
 --------------------------------------------------------------------]]--
 
--- sv_core.lua calls GModPanel.StartSetup() when needed.
--- This file intentionally has no self-starting init block.
+concommand.Add("gmodpanel_register", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then
+        GModPanel.Print("Only superadmins can run this command.")
+        return
+    end
+
+    local code = args[1]
+    if not code or code == "" then
+        GModPanel.Print("Usage: gmodpanel_register <CODE>")
+        return
+    end
+
+    GModPanel.Print("Verifying registration... (Code: " .. code .. ")")
+
+    http.Fetch(
+        GModPanel.Config.api_base .. "/api/v1/setup/poll?code=" .. code,
+        function(body, _, _, httpCode)
+            if httpCode == 202 then
+                GModPanel.Warn("Server is not yet linked on the dashboard. Please complete the setup on the website first.")
+                return
+            end
+
+            if httpCode == 200 then
+                local res = util.JSONToTable(body)
+                if res and res.server_id and res.api_key then
+                    -- Verify dat_key matches the currently generated setup
+                    if not dat_key then
+                        GModPanel.Error("Session lost or dat_key missing. Please run gmodpanel_setup to generate a new code.")
+                        return
+                    end
+                    OnSetupComplete(res.server_id, res.api_key)
+                end
+                return
+            end
+
+            GModPanel.Error("Verification error: HTTP ", tostring(httpCode), ". Please try again.")
+        end,
+        function(err)
+            GModPanel.Warn("Verification fetch error: ", tostring(err))
+        end
+    )
+end)
+
+--[[--------------------------------------------------------------------
+    Commands
+--------------------------------------------------------------------]]--
+
+concommand.Add("gmodpanel_setup", function(ply)
+    if not ply:IsSuperAdmin() then return end
+    GModPanel.StartSetup()
+end)

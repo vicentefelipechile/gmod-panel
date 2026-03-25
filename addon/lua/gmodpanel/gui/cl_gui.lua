@@ -9,7 +9,7 @@
 --------------------------------------------------------------------]]--
 
 local main_frame = nil
-local OPEN_KEY   = KEY_F6
+local OPEN_KEY   = KEY_NONE
 
 --[[--------------------------------------------------------------------
     Components
@@ -44,17 +44,16 @@ local function BuildGUI()
 end
 
 --[[--------------------------------------------------------------------
-    Functions
---------------------------------------------------------------------]]--
-
--- (none beyond key bind)
-
---[[--------------------------------------------------------------------
     Init
 --------------------------------------------------------------------]]--
 
 hook.Add("PlayerButtonDown", "GModPanel_OpenGUI", function(ply, btn)
     if btn ~= OPEN_KEY then return end
+    if not LocalPlayer():IsSuperAdmin() then return end
+    BuildGUI()
+end)
+
+concommand.Add("gmodpanel_open", function()
     if not LocalPlayer():IsSuperAdmin() then return end
     BuildGUI()
 end)

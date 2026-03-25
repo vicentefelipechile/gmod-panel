@@ -6,16 +6,21 @@
 --------------------------------------------------------------------]]--
 
 --[[--------------------------------------------------------------------
+    Shared file registration
+--------------------------------------------------------------------]]--
+
+AddCSLuaFile("gmodpanel/config.lua")
+include("gmodpanel/config.lua")
+
+--[[--------------------------------------------------------------------
     Client file registration
 --------------------------------------------------------------------]]--
 
-AddCSLuaFile("gmodpanel/gui/sh_netmessages.lua")
 AddCSLuaFile("gmodpanel/gui/cl_gui.lua")
 AddCSLuaFile("gmodpanel/gui/cl_setup.lua")
 AddCSLuaFile("gmodpanel/gui/cl_status.lua")
 
 if CLIENT then
-    include("gmodpanel/gui/sh_netmessages.lua")
     include("gmodpanel/gui/cl_setup.lua")
     include("gmodpanel/gui/cl_status.lua")
     include("gmodpanel/gui/cl_gui.lua")
@@ -26,13 +31,12 @@ end
     Core modules (server-side, order matters)
 --------------------------------------------------------------------]]--
 
-include("gmodpanel/config.lua")
 include("gmodpanel/sv_core.lua")      -- Print/Warn/Error helpers + boot hook
 include("gmodpanel/sv_auth.lua")      -- Identity, Handshake, EnsureSession
 include("gmodpanel/sv_setup.lua")     -- First-boot flow
 include("gmodpanel/sv_heartbeat.lua") -- Periodic heartbeat timer
 include("gmodpanel/sv_events.lua")    -- Game event hooks
-include("gmodpanel/gui/sh_netmessages.lua") -- Net message declarations
+include("gmodpanel/sv_netmessages.lua") -- Net message declarations
 
 --[[--------------------------------------------------------------------
     Command executor declarations (core)
