@@ -5,52 +5,23 @@
 import { Servers } from "../lib/api";
 import { renderTopbar } from "../components/topbar";
 import { serverTabs } from "./server-home";
+import { getEventDef } from "../lib/events";
 import type { RouteContext } from "../router";
 
 let ws: WebSocket | null = null;
 
-function iconForType(type: string) {
-  const map: Record<string, string> = {
-    player_join:  "join",  player_leave: "leave",
-    player_death: "death", player_chat:  "chat",
-    map_change:   "map",
-  };
-  return map[type] ?? "default";
-}
-
-function emojiForType(type: string) {
-  const map: Record<string, string> = {
-    player_join: "→", player_leave: "←", player_death: "💀",
-    player_chat: "💬", map_change: "🗺️",
-  };
-  return map[type] ?? "•";
-}
-
 function renderEvent(ev: { ts: number; type: string; data: string }) {
-  let data: Record<string, unknown> = {};
+  let data: Record<string, any> = {};
   try { data = JSON.parse(ev.data); } catch { /* ignore */ }
 
-  const label = (() => {
-    switch (ev.type) {
-      case "player_join":  return `<strong>${data.name ?? "?"}</strong> joined`;
-      case "player_leave": return `<strong>${data.name ?? "?"}</strong> left`;
-      case "player_death": {
-        const a = (data.attacker as { name?: string } | null)?.name;
-        const v = (data.victim   as { name?: string } | null)?.name;
-        return a ? `<strong>${a}</strong> killed <strong>${v ?? "?"}</strong> with ${data.weapon ?? "?"}` : `<strong>${v ?? "?"}</strong> died`;
-      }
-      case "player_chat":  return `<strong>${data.name ?? "?"}</strong>: ${data.message ?? ""}`;
-      case "map_change":   return `Map changed to <strong>${data.map ?? "?"}</strong>`;
-      default: return `${ev.type}`;
-    }
-  })();
-
-  const cls = iconForType(ev.type);
+  const def = getEventDef(ev.type);
+  const label = def.format(data);
+  const cls = def.icon;
   const time = new Date(ev.ts * 1000).toLocaleTimeString();
 
   return `
     <div class="event-item">
-      <div class="event-icon ${cls}">${emojiForType(ev.type)}</div>
+      <div class="event-icon ${cls}">${def.emoji}</div>
       <div class="event-body">
         <div class="event-text">${label}</div>
         <div class="event-time">${time}</div>

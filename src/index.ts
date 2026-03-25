@@ -24,7 +24,6 @@ import statsRoutes from "./routes/dashboard/stats";
 import playerRoutes from "./routes/dashboard/players";
 import warningRoutes from "./routes/dashboard/warnings";
 
-import { verifyDashboardSession } from "./middleware/verifyDashboardSession";
 import type { HonoVars } from "./types";
 
 export { ServerHub } from "./objects/ServerHub";
@@ -53,9 +52,6 @@ app.route("/api/v1/command", commandRoute);
 
 // --- Auth ---
 app.route("/auth/steam", steamRoutes);
-
-// Setup confirm requires dashboard session
-app.use("/api/v1/setup/confirm", verifyDashboardSession);
 
 // --- Dashboard ---
 app.route("/api/v1/servers", serverRoutes);

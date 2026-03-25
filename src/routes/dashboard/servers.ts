@@ -188,5 +188,23 @@ app.get("/:id/ws", async (c) => {
 	return stub.fetch(c.req.raw);
 });
 
+/** DELETE /api/v1/servers/:id — completely delete a server and its data */
+app.delete("/:id", async (c) => {
+	const server_id = c.req.param("id");
+	if (!(await assertOwnership(c, server_id))) {
+		return c.json({ error: "Forbidden" }, 403);
+	}
+
+	await c.env.DB
+		.prepare("DELETE FROM servers WHERE id = ?")
+		.bind(server_id)
+		.run();
+
+	await c.env.KV.delete(`live:${server_id}`);
+	await c.env.KV.delete(`datkey:${server_id}`);
+
+	return c.json({ ok: true });
+});
+
 export default app;
 

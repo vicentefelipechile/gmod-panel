@@ -11,13 +11,14 @@ import { renderTopbar } from "./components/topbar";
 
 import { loginView, loginAfter } from "./views/login";
 import { serversView } from "./views/servers";
-import { serverHomeView, serverTabs } from "./views/server-home";
+import { serverHomeView, serverHomeAfter, serverTabs } from "./views/server-home";
 import { serverPlayersView, serverPlayersAfter } from "./views/server-players";
 import { serverEventsView, serverEventsAfter } from "./views/server-events";
 import { serverCommandsView, serverCommandsAfter } from "./views/server-commands";
 import { serverWarningsView, serverWarningsAfter } from "./views/server-warnings";
 import { serverStatsView, serverStatsAfter } from "./views/server-stats";
 import { playerProfileView } from "./views/player-profile";
+import { setupView, setupAfter } from "./views/setup";
 import type { Me, Server } from "./lib/api";
 
 // =========================================================================
@@ -48,14 +49,16 @@ route("/", async (ctx) => {
 
 route("/servers", serversView);
 
-route("/servers/:id",          serverHomeView);
-route("/servers/:id/players",  serverPlayersView, { after: serverPlayersAfter });
-route("/servers/:id/events",   serverEventsView,  { after: serverEventsAfter });
-route("/servers/:id/commands", serverCommandsView,{ after: serverCommandsAfter });
-route("/servers/:id/warnings", serverWarningsView,{ after: serverWarningsAfter });
-route("/servers/:id/stats",    serverStatsView,   { after: serverStatsAfter });
+route("/servers/:id", serverHomeView, { after: serverHomeAfter });
+route("/servers/:id/players", serverPlayersView, { after: serverPlayersAfter });
+route("/servers/:id/events", serverEventsView, { after: serverEventsAfter });
+route("/servers/:id/commands", serverCommandsView, { after: serverCommandsAfter });
+route("/servers/:id/warnings", serverWarningsView, { after: serverWarningsAfter });
+route("/servers/:id/stats", serverStatsView, { after: serverStatsAfter });
 
 route("/players/:steamid", playerProfileView);
+
+route("/setup", setupView, { after: setupAfter });
 
 route("/settings", async (ctx) => {
   renderTopbar(["Settings"], ctx.user);
@@ -115,7 +118,7 @@ async function init() {
   // Sync server list into sidebar
   if (currentUser) {
     import("./lib/api").then(({ Servers }) => {
-      Servers.list().then(({ servers }) => setSidebarServers(servers)).catch(() => {});
+      Servers.list().then(({ servers }) => setSidebarServers(servers)).catch(() => { });
     });
   }
 

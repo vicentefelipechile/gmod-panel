@@ -18,7 +18,7 @@ export interface Server {
 }
 
 export interface LiveState {
-  timestamp: number;
+  ts: number;
   map: string;
   gamemode: string;
   player_count: number;
@@ -103,6 +103,11 @@ export const Auth = {
   me: () => req<Me>("/auth/steam/me"),
   logout: () => fetch("/auth/steam/logout", { method: "POST", credentials: "include" }),
   loginUrl: () => "/auth/steam/login",
+  confirmSetup: (code: string, name: string) =>
+    req<{ ok: boolean; server_id: string }>("/api/v1/setup/confirm", {
+      method: "POST",
+      body: JSON.stringify({ code, name }),
+    }),
 };
 
 // -------------------------------------------------------------------------
@@ -111,6 +116,9 @@ export const Auth = {
 
 export const Servers = {
   list: () => req<{ servers: Server[] }>("/api/v1/servers"),
+
+  delete: (id: string) =>
+    req<{ ok: boolean }>(`/api/v1/servers/${id}`, { method: "DELETE" }),
 
   live: (id: string) =>
     req<{ live: LiveState | null; online: boolean }>(`/api/v1/servers/${id}/live`),

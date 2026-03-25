@@ -67,12 +67,12 @@ export function renderSidebar(user: Me | null) {
     </div>
   `;
 
-  // Attach nav click handlers
-  el.querySelectorAll("[data-href]").forEach(item => {
-    item.addEventListener("click", () => {
-      const href = (item as HTMLElement).dataset.href!;
-      navigate(href);
-    });
+  // Attach nav click handlers via event delegation
+  el.addEventListener("click", (e) => {
+    const item = (e.target as Element).closest("[data-href]");
+    if (!item) return;
+    const href = (item as HTMLElement).dataset.href!;
+    navigate(href);
   });
 
   refreshIcons();

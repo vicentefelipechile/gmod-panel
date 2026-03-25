@@ -97,10 +97,23 @@ async function dispatch() {
     const ctx: RouteContext = { params, query, user: currentUser };
     const viewEl = document.getElementById("view")!;
 
-    viewEl.innerHTML = `<div class="loading-screen"><span class="spinner"></span></div>`;
-    viewEl.innerHTML = await r.view(ctx);
-    r.after?.(ctx);
-    refreshIcons();
+    viewEl.style.opacity = "0.5";
+    viewEl.style.pointerEvents = "none";
+    viewEl.style.transition = "opacity 150ms ease";
+
+    // Yield to the browser to ensure the CSS transition starts painting,
+    // so purely synchronous views (like settings) don't snap instantly.
+    await new Promise(r => setTimeout(r, 60));
+
+    try {
+      const html = await r.view(ctx);
+      viewEl.innerHTML = html;
+      r.after?.(ctx);
+      refreshIcons();
+    } finally {
+      viewEl.style.opacity = "1";
+      viewEl.style.pointerEvents = "auto";
+    }
     return;
   }
 

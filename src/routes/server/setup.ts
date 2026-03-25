@@ -18,6 +18,7 @@ import {
 } from "../../services/kv";
 import { genSetupCode, randomHex, genServerId } from "../../utils/id";
 import { hashApiKey } from "../../utils/hash";
+import { verifyDashboardSession } from "../../middleware/verifyDashboardSession";
 import type { HonoVars } from "../../types";
 
 // =========================================================================
@@ -104,6 +105,7 @@ app.get("/datkey", async (c) => {
  * Requires a valid dashboard session (handled at route mount level).
  * Creates the server record in D1 and writes credentials back to KV.
  */
+app.use("/confirm", verifyDashboardSession);
 app.post("/confirm", async (c) => {
 	const body = await c.req.json<{ code: string; name: string }>();
 	if (!body.code || !body.name) {
@@ -120,6 +122,8 @@ app.post("/confirm", async (c) => {
 	const api_key_hash = await hashApiKey(api_key);
 	const dat_key = setup.dat_key;
 	const now = Date.now();
+
+	console.log(server_id, user_id, body.name, api_key_hash, now);
 
 	// Persist server
 	await c.env.DB

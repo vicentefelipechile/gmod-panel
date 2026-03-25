@@ -17,16 +17,22 @@ export async function serverStatsView(ctx: RouteContext): Promise<string> {
     <div class="grid grid-2 mb-4">
       <div class="card">
         <div class="card-header"><div class="card-title">Player Count (24h)</div></div>
-        <canvas id="chart-players" height="180"></canvas>
+        <div style="position: relative; height: 180px; width: 100%;">
+          <canvas id="chart-players"></canvas>
+        </div>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">Server FPS (7d)</div></div>
-        <canvas id="chart-fps" height="180"></canvas>
+        <div style="position: relative; height: 180px; width: 100%;">
+          <canvas id="chart-fps"></canvas>
+        </div>
       </div>
     </div>
     <div class="card">
       <div class="card-header"><div class="card-title">Map Playtime (7d)</div></div>
-      <canvas id="chart-maps" height="120"></canvas>
+      <div style="position: relative; height: 180px; width: 100%;">
+        <canvas id="chart-maps"></canvas>
+      </div>
     </div>
   `;
 }
@@ -44,7 +50,7 @@ export async function serverStatsAfter(ctx: RouteContext) {
     plugins: { legend: { display: false } },
     scales: {
       x: { ticks: { color: TICK_COLOR, font: { size: 11 } }, grid: { color: GRID_COLOR } },
-      y: { ticks: { color: TICK_COLOR, font: { size: 11 } }, grid: { color: GRID_COLOR } },
+      y: { beginAtZero: true, ticks: { color: TICK_COLOR, font: { size: 11 }, precision: 0 }, grid: { color: GRID_COLOR } },
     },
   };
 
@@ -62,7 +68,7 @@ export async function serverStatsAfter(ctx: RouteContext) {
         labels: playersData.data.map(d => new Date(d.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })),
         datasets: [{
           label: "Avg Players",
-          data: playersData.data.map(d => d.avg_players),
+          data: playersData.data.map(d => Math.round(d.avg_players)),
           borderColor: "#38bdf8",
           backgroundColor: "rgba(56,189,248,0.08)",
           fill: true,
@@ -79,7 +85,7 @@ export async function serverStatsAfter(ctx: RouteContext) {
         labels: fpsData.data.map(d => new Date(d.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })),
         datasets: [{
           label: "Avg FPS",
-          data: fpsData.data.map(d => d.avg_fps),
+          data: fpsData.data.map(d => Math.round(d.avg_fps)),
           borderColor: "#4ade80",
           backgroundColor: "rgba(74,222,128,0.08)",
           fill: true,
