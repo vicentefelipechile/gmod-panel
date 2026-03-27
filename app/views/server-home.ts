@@ -6,15 +6,24 @@ import { Servers } from "../lib/api";
 import { renderTopbar } from "../components/topbar";
 import { navigate, type RouteContext } from "../router";
 import { setSidebarServers } from "../components/sidebar";
+import { toast } from "../components/toast";
+import { refreshIcons } from "../lib/icons";
 
 export async function serverHomeView(ctx: RouteContext): Promise<string> {
   const id = ctx.params.id;
   renderTopbar(["Servers", id], ctx.user);
 
+  let serverName = id;
+  try {
+    const { servers } = await Servers.list();
+    const s = servers.find(srv => srv.id === id);
+    if (s) serverName = s.display_name || s.name;
+  } catch { }
+
   try {
     const { live, online } = await Servers.live(id);
 
-    const tabs = serverTabs(id, "overview");
+    const tabs = serverTabs(id, "overview", serverName);
     if (!online || !live) {
       return `${tabs}
         <div class="empty-state">
@@ -98,7 +107,7 @@ export async function serverHomeView(ctx: RouteContext): Promise<string> {
 // Shared tab bar for server sub-views
 // -------------------------------------------------------------------------
 
-export function serverTabs(id: string, active: string) {
+export function serverTabs(id: string, active: string, displayName?: string) {
   const tabs = [
     { key: "overview", label: "Overview", href: `/servers/${id}`, icon: "activity" },
     { key: "players", label: "Players", href: `/servers/${id}/players`, icon: "users" },
@@ -106,8 +115,25 @@ export function serverTabs(id: string, active: string) {
     { key: "commands", label: "Commands", href: `/servers/${id}/commands`, icon: "server" },
     { key: "warnings", label: "Warnings", href: `/servers/${id}/warnings`, icon: "alert-triangle" },
     { key: "stats", label: "Stats", href: `/servers/${id}/stats`, icon: "bar-chart-2" },
+    { key: "config", label: "Config", href: `/servers/${id}/config`, icon: "settings" },
+    { key: "members", label: "Members", href: `/servers/${id}/members`, icon: "user-plus" },
   ];
+
+  const nameHtml = displayName
+    ? `<div class="server-name-header">
+        <span id="server-display-name">${displayName}</span>
+        <button class="btn btn-ghost btn-sm" id="rename-server-btn" title="Rename">
+          <i data-lucide="pencil" style="width:13px;height:13px"></i>
+        </button>
+        <form id="rename-form" style="display:none;align-items:center;gap:6px">
+          <input class="form-input" type="text" id="rename-input" value="${displayName}" maxlength="64" style="padding:4px 8px;font-size:13px" />
+          <button type="submit" class="btn btn-primary btn-sm">Save</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="rename-cancel">Cancel</button>
+        </form>
+      </div>` : "";
+
   return `
+    ${nameHtml}
     <div class="tab-bar">
       ${tabs.map(t => `<a href="${t.href}" class="tab ${t.key === active ? "active" : ""}"><i data-lucide="${t.icon}" style="width: 14px; height: 14px; margin-right: 6px; margin-bottom: -2px;"></i>${t.label}</a>`).join("")}
     </div>
@@ -156,5 +182,41 @@ if (!(window as any)._gmpDeleteServerBound) {
 }
 
 export function serverHomeAfter(ctx: RouteContext) {
-  // Initialization done globally
+  const id = ctx.params.id;
+
+  // Inline rename wiring
+  const renameBtn = document.getElementById("rename-server-btn");
+  const renameForm = document.getElementById("rename-form") as HTMLFormElement | null;
+  const nameSpan = document.getElementById("server-display-name");
+  const renameCancel = document.getElementById("rename-cancel");
+
+  renameBtn?.addEventListener("click", () => {
+    renameBtn.style.display = "none";
+    if (nameSpan) nameSpan.style.display = "none";
+    if (renameForm) renameForm.style.display = "flex";
+    (document.getElementById("rename-input") as HTMLInputElement)?.focus();
+  });
+
+  renameCancel?.addEventListener("click", () => {
+    if (renameForm) renameForm.style.display = "none";
+    if (renameBtn) renameBtn.style.display = "";
+    if (nameSpan) nameSpan.style.display = "";
+  });
+
+  renameForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const val = (document.getElementById("rename-input") as HTMLInputElement).value.trim();
+    if (!val) return;
+    try {
+      await Servers.rename(id, val);
+      if (nameSpan) nameSpan.textContent = val;
+      document.title = val;
+      renameCancel?.click();
+      toast("Server renamed", "success");
+      // Also refresh sidebar so old name disappears immediately
+      Servers.list().then(({ servers }) => setSidebarServers(servers)).catch(() => {});
+    } catch (err: any) {
+      toast(`Failed: ${err.message}`, "error");
+    }
+  });
 }

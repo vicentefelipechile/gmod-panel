@@ -6,8 +6,53 @@
 --------------------------------------------------------------------]]--
 
 --[[--------------------------------------------------------------------
+    Variables
+--------------------------------------------------------------------]]--
+
+-- Hash of the last-sent registry, so we only send when it changes
+local LastRegistryHash = nil
+
+--[[--------------------------------------------------------------------
     Functions
 --------------------------------------------------------------------]]--
+
+local function GetTeams()
+    local teams = {}
+    for index, data in pairs(team.GetAllTeams()) do
+        if index ~= TEAM_UNASSIGNED and index ~= TEAM_CONNECTING then
+            table.insert(teams, {
+                index = index,
+                name  = data.Name or tostring(index),
+            })
+        end
+    end
+    return teams
+end
+
+local function GetMaps()
+    local maps = {}
+    local files = file.Find("maps/*.bsp", "GAME")
+    for i = 1, math.min(#files, 250) do
+        local name = string.StripExtension(files[i])
+        table.insert(maps, name)
+    end
+    table.sort(maps)
+    return maps
+end
+
+-- Returns the registry JSON and whether it changed since last send
+local function GetRegistry()
+    local list    = GModPanel.BuildRegistry()
+    local json    = util.TableToJSON(list)
+    local hash    = util.CRC(json)
+
+    if hash == LastRegistryHash then
+        return nil, false  -- unchanged — skip sending
+    end
+
+    LastRegistryHash = hash
+    return list, true
+end
 
 local function BuildPayload()
     local players = {}
@@ -21,7 +66,9 @@ local function BuildPayload()
         })
     end
 
-    return util.TableToJSON({
+    local registry, changed = GetRegistry()
+
+    local payload = {
         timestamp    = os.time(),
         map          = game.GetMap(),
         gamemode     = engine.ActiveGamemode(),
@@ -30,7 +77,21 @@ local function BuildPayload()
         fps          = math.floor(1 / engine.TickInterval()),
         tickrate     = math.floor(1 / engine.TickInterval()),
         players      = players,
-    })
+        teams        = GetTeams(),
+        maps         = GetMaps(),
+        -- Live server identity values (read by Config tab)
+        server_name  = GetConVar("hostname"):GetString(),
+        -- sv_password  = GetConVar("sv_password"):GetString(),
+        region       = GetConVar("sv_region"):GetInt(),
+        friendlyfire = GetConVar("mp_friendlyfire") and GetConVar("mp_friendlyfire"):GetInt() or 0,
+    }
+
+    -- Only include registry when it has changed (saves bandwidth)
+    if changed and registry then
+        payload.command_registry = registry
+    end
+
+    return util.TableToJSON(payload)
 end
 
 local function DoHeartbeat()
@@ -70,6 +131,11 @@ end
     Timers
 --------------------------------------------------------------------]]--
 
-timer.Create("GModPanel_Heartbeat", GModPanel.Config.heartbeat, 0, function()
-    GModPanel.EnsureSession(DoHeartbeat)
+hook.Add("Initialize", "GModPanel_InitHeartbeat", function()
+    -- Force registry send on first heartbeat
+    LastRegistryHash = nil
+
+    timer.Create("GModPanel_Heartbeat", GModPanel.Config.heartbeat, 0, function()
+        GModPanel.EnsureSession(DoHeartbeat)
+    end)
 end)

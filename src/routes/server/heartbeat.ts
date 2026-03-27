@@ -1,7 +1,8 @@
 // =========================================================================
 // src/routes/server/heartbeat.ts
 // POST /api/v1/heartbeat — receives server state snapshot, updates KV
-// live state, writes D1 snapshot row, and returns the pending command queue.
+// live state, writes D1 snapshot row, returns the pending command queue,
+// and upserts the command registry when the addon reports changes.
 // =========================================================================
 
 // =========================================================================
@@ -26,6 +27,24 @@ interface HeartbeatPlayer {
 	playtime: number;
 }
 
+interface HeartbeatTeam {
+	index: number;
+	name: string;
+}
+
+interface CommandArgMeta {
+	name: string;
+	type: string;
+	label: string;
+	required: boolean;
+}
+
+interface CommandRegistryEntry {
+	type: string;
+	description: string;
+	args: CommandArgMeta[];
+}
+
 interface HeartbeatBody {
 	timestamp: number;
 	map: string;
@@ -35,6 +54,13 @@ interface HeartbeatBody {
 	fps: number;
 	tickrate?: number;
 	players: HeartbeatPlayer[];
+	teams?: HeartbeatTeam[];
+	maps?: string[];
+	server_name?: string;
+	sv_password?: string;
+	region?: number;
+	friendlyfire?: number;
+	command_registry?: CommandRegistryEntry[];
 }
 
 // =========================================================================
@@ -63,6 +89,11 @@ app.post("/", verifyServerSession, async (c) => {
 		max_players: body.max_players,
 		fps: body.fps,
 		players: body.players,
+		teams: body.teams ?? [],
+		maps: body.maps ?? [],
+		server_name: body.server_name,
+		sv_password: body.sv_password,
+		region: body.region,
 		ts: now,
 	});
 
@@ -92,6 +123,37 @@ app.post("/", verifyServerSession, async (c) => {
 			.run()
 	);
 
+	// =========================================================================
+	// Upsert command registry (only sent when registry changes)
+	// =========================================================================
+	if (body.command_registry && body.command_registry.length > 0) {
+		c.executionCtx.waitUntil(
+			(async () => {
+				// Delete all existing entries for this server, then bulk-insert
+				await c.env.DB
+					.prepare("DELETE FROM command_registry WHERE server_id = ?")
+					.bind(server_id)
+					.run();
+
+				for (const entry of body.command_registry!) {
+					await c.env.DB
+						.prepare(
+							`INSERT INTO command_registry (server_id, type, description, args, updated_at)
+							 VALUES (?, ?, ?, ?, ?)`
+						)
+						.bind(
+							server_id,
+							entry.type,
+							entry.description ?? "",
+							JSON.stringify(entry.args ?? []),
+							now
+						)
+						.run();
+				}
+			})()
+		);
+	}
+
 	// Deliver pending commands to the addon
 	const commands = await deliverCommands(c.env.KV, server_id);
 
@@ -116,4 +178,3 @@ app.post("/", verifyServerSession, async (c) => {
 });
 
 export default app;
-

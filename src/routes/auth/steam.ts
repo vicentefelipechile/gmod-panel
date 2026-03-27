@@ -189,11 +189,26 @@ app.get("/me", async (c) => {
 
 	if (!user) return c.json(null, 401);
 
+	// Fetch pending invitations for this user
+	const { results: pendingInvitations } = await c.env.DB
+		.prepare(
+			`SELECT sm.server_id, sm.invited_by, sm.created_at,
+			        s.name, s.display_name,
+			        u.display_name AS inviter_name, u.avatar_url AS inviter_avatar
+			 FROM server_members sm
+			 JOIN servers s ON s.id = sm.server_id
+			 LEFT JOIN users u ON u.steamid64 = sm.invited_by
+			 WHERE sm.steamid64 = ? AND sm.status = 'pending'`
+		)
+		.bind(user.steamid64)
+		.all();
+
 	return c.json({
 		user_id: user.id,
 		steamid64: user.steamid64,
 		display_name: user.display_name,
 		avatar_url: user.avatar_url,
+		pending_invitations: pendingInvitations,
 	});
 });
 

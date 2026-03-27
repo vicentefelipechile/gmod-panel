@@ -1,0 +1,126 @@
+/* =========================================================================
+   app/styles/members.css — Server members view + invitation banner styles
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Server name header (inline rename in tab bar)
+   ------------------------------------------------------------------------- */
+
+.server-name-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+#rename-form {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+#rename-form .form-input {
+  min-width: 220px;
+}
+
+/* -------------------------------------------------------------------------
+   Member table badges
+   ------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.badge-cyan   { background: rgba(0, 210, 255, 0.12); color: var(--cyan); }
+.badge-green  { background: rgba(0, 255, 160, 0.12); color: var(--green); }
+.badge-yellow { background: rgba(255, 200, 0, 0.12); color: #f5c400; }
+.badge-red    { background: rgba(255, 80, 80, 0.12);  color: var(--danger); }
+.badge-muted  { background: var(--surface-2); color: var(--text-muted); }
+
+/* -------------------------------------------------------------------------
+   Invitation banner (fixed, top-right)
+   ------------------------------------------------------------------------- */
+
+.invite-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  border-radius: 10px;
+  padding: 14px 14px 14px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  animation: banner-slide-in 0.3s ease;
+  position: relative;
+  min-width: 300px;
+}
+
+@keyframes banner-slide-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.invite-banner-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 210, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cyan);
+}
+
+.invite-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.invite-banner-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.invite-banner-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.invite-banner-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.invite-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.invite-dismiss:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}

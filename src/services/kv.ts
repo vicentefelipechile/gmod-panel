@@ -54,6 +54,13 @@ export interface LiveServerState {
 		team: string;
 		playtime: number;
 	}>;
+	teams: Array<{ index: number; name: string }>;
+	maps: string[];
+	// Server identity (from live convar values)
+	server_name?: string;
+	sv_password?: string;
+	region?: number;
+	friendslyfire?: number;
 	ts: number;
 }
 

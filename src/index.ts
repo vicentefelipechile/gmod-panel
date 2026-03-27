@@ -16,6 +16,7 @@ import handshakeRoute from "./routes/server/handshake";
 import heartbeatRoute from "./routes/server/heartbeat";
 import eventRoute from "./routes/server/event";
 import commandRoute from "./routes/server/command";
+import configRoute from "./routes/server/config";
 
 import steamRoutes from "./routes/auth/steam";
 
@@ -49,6 +50,7 @@ app.route("/api/v1/handshake", handshakeRoute);
 app.route("/api/v1/heartbeat", heartbeatRoute);
 app.route("/api/v1/event", eventRoute);
 app.route("/api/v1/command", commandRoute);
+app.route("/api/v1/config", configRoute);
 
 // --- Auth ---
 app.route("/auth/steam", steamRoutes);

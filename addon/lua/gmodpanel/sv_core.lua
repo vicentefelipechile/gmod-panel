@@ -20,11 +20,7 @@ local COLOR_INFO = Color(120, 200, 255)
 --------------------------------------------------------------------]]--
 
 local function ts(...)
-    local t = ""
-    for _, v in ipairs({...}) do
-        t = t .. tostring(v) .. " "
-    end
-
+    local t = "" for _, v in ipairs({...}) do t = t .. tostring(v) .. " " end
     return t
 end
 
@@ -57,11 +53,11 @@ hook.Add("Initialize", "GModPanel_Boot", function()
     GModPanel.Print("Booting GModPanel...")
 
     if not file.Exists("gmodpanel.dat", "DATA") then
-        GModPanel.Print("No credentials found — entering setup mode.")
+        GModPanel.Print("No credentials found - entering setup mode.")
         include("gmodpanel/sv_setup.lua")
         GModPanel.StartSetup()
     else
-        GModPanel.Print("Credentials found — loading identity...")
+        GModPanel.Print("Credentials found - loading identity...")
         GModPanel.LoadIdentity(function(ok)
             if not ok then
                 GModPanel.Error("Failed to load identity. Re-running setup.")

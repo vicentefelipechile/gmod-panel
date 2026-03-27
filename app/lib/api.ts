@@ -11,6 +11,7 @@ const BASE = "";
 export interface Server {
   id: string;
   name: string;
+  display_name: string | null;
   description: string | null;
   created_at: number;
   last_seen: number | null;
@@ -26,6 +27,12 @@ export interface LiveState {
   fps: number;
   tickrate: number;
   players: LivePlayer[];
+  teams: LiveTeam[];
+  maps: string[];
+  server_name?: string;
+  sv_password?: string;
+  region?: number;
+  friendlyfire?: number;
 }
 
 export interface LivePlayer {
@@ -34,6 +41,24 @@ export interface LivePlayer {
   ping: number;
   team: string;
   playtime: number;
+}
+
+export interface LiveTeam {
+  index: number;
+  name: string;
+}
+
+export interface CommandArgMeta {
+  name: string;
+  type: string;
+  label: string;
+  required: boolean;
+}
+
+export interface CommandRegistryEntry {
+  type: string;
+  description: string;
+  args: CommandArgMeta[];
 }
 
 export interface ServerEvent {
@@ -48,6 +73,7 @@ export interface CommandRecord {
   type: string;
   payload: string;
   issued_by: string;
+  issued_by_name: string | null;
   status: string;
   created_at: number;
   acked_at: number | null;
@@ -64,10 +90,45 @@ export interface Warning {
   active: number;
 }
 
+export interface ServerConfig {
+  server_id: string;
+  server_name: string | null;
+  map: string | null;
+  gamemode: string | null;
+  max_players: number | null;
+  region: string | null;
+  sv_password: string | null;
+  friendlyfire: number | null;
+  motd: string | null;
+  updated_at: number | null;
+}
+
 export interface Me {
   user_id: string;
   steamid64: string;
   display_name: string;
+  avatar_url: string | null;
+  pending_invitations: PendingInvitation[];
+}
+
+export interface PendingInvitation {
+  server_id: string;
+  server_name: string;      // the GMod addon name
+  server_display_name: string | null; // dashboard display_name
+  invited_by: string;       // steamid64
+  inviter_name: string | null;
+  inviter_avatar: string | null;
+  created_at: number;
+}
+
+export interface ServerMember {
+  steamid64: string;
+  role: string;
+  status: string;
+  invited_by: string | null;
+  created_at: number;
+  accepted_at: number | null;
+  display_name: string | null;
   avatar_url: string | null;
 }
 
@@ -126,10 +187,13 @@ export const Servers = {
   players: (id: string) =>
     req<{ players: LivePlayer[]; online: boolean }>(`/api/v1/servers/${id}/players`),
 
-  events: (id: string, limit = 50, before?: number) => {
+  events: (id: string, limit = 50, before?: number, type?: string) => {
     const qs = new URLSearchParams({ limit: String(limit) });
     if (before) qs.set("before", String(before));
-    return req<{ events: ServerEvent[] }>(`/api/v1/servers/${id}/events?${qs}`);
+    if (type)   qs.set("type", type);
+    return req<{ events: ServerEvent[]; types: string[]; has_more: boolean }>(
+      `/api/v1/servers/${id}/events?${qs}`
+    );
   },
 
   commands: (id: string) =>
@@ -164,6 +228,42 @@ export const Servers = {
         `/api/v1/servers/${id}/stats/performance`
       ),
   },
+
+  getConfig: (id: string) =>
+    req<{ config: ServerConfig | null }>(`/api/v1/servers/${id}/config`),
+
+  setConfig: (id: string, config: Record<string, string | number | boolean | null>) =>
+    req<{ ok: boolean; queued: string[] }>(`/api/v1/servers/${id}/config`, {
+      method: "PUT",
+      body: JSON.stringify(config),
+    }),
+
+  registry: (id: string) =>
+    req<{ registry: CommandRegistryEntry[] }>(`/api/v1/servers/${id}/registry`),
+
+  rename: (id: string, display_name: string) =>
+    req<{ ok: boolean; display_name: string }>(`/api/v1/servers/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ display_name }),
+    }),
+
+  members: (id: string) =>
+    req<{ owner: ServerMember; members: ServerMember[] }>(`/api/v1/servers/${id}/members`),
+
+  invite: (id: string, input: string) =>
+    req<{ ok: boolean; steamid64: string; display_name: string; avatar_url: string | null }>(
+      `/api/v1/servers/${id}/members`,
+      { method: "POST", body: JSON.stringify({ input }) }
+    ),
+
+  removeMember: (id: string, steamid64: string) =>
+    req<{ ok: boolean }>(`/api/v1/servers/${id}/members/${steamid64}`, { method: "DELETE" }),
+
+  respondInvitation: (server_id: string, action: "accept" | "decline") =>
+    req<{ ok: boolean }>(`/api/v1/servers/${server_id}/members/respond`, {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    }),
 };
 
 // -------------------------------------------------------------------------

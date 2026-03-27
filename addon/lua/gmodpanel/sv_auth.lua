@@ -14,6 +14,8 @@ local Identity = {
     api_key   = nil,
 }
 
+local FirstTime = true
+
 --[[--------------------------------------------------------------------
     Internal Functions
 --------------------------------------------------------------------]]--
@@ -142,6 +144,8 @@ function GModPanel.Handshake(callback)
         headers = { ["Content-Type"] = "application/json" },
         body = payload,
         success = function(code, body, headers)
+            if FirstTime then FirstTime = false return end
+
             if code ~= 200 then
                 GModPanel.Error("Handshake failed: HTTP ", tostring(code))
                 return

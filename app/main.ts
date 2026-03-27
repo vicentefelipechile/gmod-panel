@@ -17,6 +17,8 @@ import { serverEventsView, serverEventsAfter } from "./views/server-events";
 import { serverCommandsView, serverCommandsAfter } from "./views/server-commands";
 import { serverWarningsView, serverWarningsAfter } from "./views/server-warnings";
 import { serverStatsView, serverStatsAfter } from "./views/server-stats";
+import { serverConfigView, serverConfigAfter } from "./views/server-config";
+import { serverMembersView, serverMembersAfter } from "./views/server-members";
 import { playerProfileView } from "./views/player-profile";
 import { setupView, setupAfter } from "./views/setup";
 import type { Me, Server } from "./lib/api";
@@ -55,6 +57,8 @@ route("/servers/:id/events", serverEventsView, { after: serverEventsAfter });
 route("/servers/:id/commands", serverCommandsView, { after: serverCommandsAfter });
 route("/servers/:id/warnings", serverWarningsView, { after: serverWarningsAfter });
 route("/servers/:id/stats", serverStatsView, { after: serverStatsAfter });
+route("/servers/:id/config", serverConfigView, { after: serverConfigAfter });
+route("/servers/:id/members", serverMembersView, { after: serverMembersAfter });
 
 route("/players/:steamid", playerProfileView);
 
@@ -97,6 +101,92 @@ notFound(async () => {
 });
 
 // =========================================================================
+// Invitation banner
+// =========================================================================
+
+function showInvitationBanners(invitations: NonNullable<typeof currentUser>["pending_invitations"]) {
+  if (!invitations?.length) return;
+
+  // Inject into the main content area, above everything else
+  const container = document.getElementById("app") ?? document.body;
+  const wrapper = document.createElement("div");
+  wrapper.id = "invite-banners";
+  wrapper.style.cssText = "position:fixed;top:56px;right:16px;z-index:900;display:flex;flex-direction:column;gap:8px;max-width:360px";
+
+  invitations.forEach((inv: any) => {
+    const serverLabel = inv.display_name || inv.name || inv.server_id;
+    const inviterLabel = inv.inviter_name || inv.invited_by;
+    const card = document.createElement("div");
+    card.className = "invite-banner";
+    card.dataset.server = inv.server_id;
+    card.innerHTML = `
+      <div class="invite-banner-icon"><i data-lucide="user-plus" style="width:20px;height:20px"></i></div>
+      <div class="invite-banner-body">
+        <div class="invite-banner-title">You've been invited!</div>
+        <div class="invite-banner-desc">
+          <strong>${inviterLabel}</strong> invited you to manage <strong>${serverLabel}</strong>.
+        </div>
+        <div class="invite-banner-actions">
+          <button class="btn btn-primary btn-sm invite-accept" data-server="${inv.server_id}">Accept</button>
+          <button class="btn btn-ghost btn-sm invite-decline" data-server="${inv.server_id}">Decline</button>
+        </div>
+      </div>
+      <button class="invite-dismiss" data-server="${inv.server_id}" title="Dismiss">✕</button>
+    `;
+    wrapper.appendChild(card);
+  });
+
+  document.body.appendChild(wrapper);
+  import("./lib/icons").then(({ refreshIcons }) => refreshIcons());
+
+  // Wire buttons (event delegation on wrapper)
+  wrapper.addEventListener("click", async (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest("[data-server]") as HTMLElement | null;
+    if (!btn) return;
+    const server_id = btn.dataset.server!;
+    const card = wrapper.querySelector(`[data-server="${server_id}"].invite-banner`) as HTMLElement | null;
+
+    if (btn.classList.contains("invite-accept")) {
+      btn.textContent = "Accepting…";
+      (btn as HTMLButtonElement).disabled = true;
+      import("./lib/api").then(async ({ Servers }) => {
+        try {
+          await Servers.respondInvitation(server_id, "accept");
+          card?.remove();
+          import("./components/toast").then(({ toast }) => toast("Invitation accepted!", "success"));
+          // Reload server list in sidebar
+          Servers.list().then(({ servers }) => {
+            import("./components/sidebar").then(({ setSidebarServers }) => setSidebarServers(servers));
+          }).catch(() => {});
+        } catch (err: any) {
+          import("./components/toast").then(({ toast }) => toast(`Failed: ${err.message}`, "error"));
+          btn.textContent = "Accept";
+          (btn as HTMLButtonElement).disabled = false;
+        }
+      });
+    } else if (btn.classList.contains("invite-decline")) {
+      btn.textContent = "Declining…";
+      (btn as HTMLButtonElement).disabled = true;
+      import("./lib/api").then(async ({ Servers }) => {
+        try {
+          await Servers.respondInvitation(server_id, "decline");
+          card?.remove();
+        } catch {
+          btn.textContent = "Decline";
+          (btn as HTMLButtonElement).disabled = false;
+        }
+      });
+    } else if (btn.classList.contains("invite-dismiss")) {
+      card?.remove();
+    }
+
+    // Remove the whole wrapper when no cards remain
+    if (wrapper.querySelectorAll(".invite-banner").length === 0) wrapper.remove();
+  });
+}
+
+// =========================================================================
 // Init
 // =========================================================================
 
@@ -108,6 +198,11 @@ async function init() {
   try {
     currentUser = await Auth.me();
     setUser(currentUser);
+
+    // Show pending invitation banners
+    if (currentUser?.pending_invitations?.length) {
+      showInvitationBanners(currentUser.pending_invitations);
+    }
   } catch {
     currentUser = null;
     setUser(null);

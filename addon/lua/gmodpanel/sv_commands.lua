@@ -2,6 +2,7 @@
     sv_commands.lua
     Declarative command executor system. Registers all supported command
     types and processes the command queue received from the Worker.
+    Also builds the command registry payload sent via heartbeat.
 --------------------------------------------------------------------]]--
 
 --[[--------------------------------------------------------------------
@@ -31,10 +32,34 @@ function Executor:SetDescription(desc)
     return self
 end
 
--- required = true  → validated before calling handler
--- required = false → optional (nil if absent)
+--[[--------------------------------------------------------------------
+    :AddArgument(name, required)
+    Legacy method — keeps backward compatibility.
+    Argument type defaults to "string".
+--------------------------------------------------------------------]]--
 function Executor:AddArgument(name, required)
-    table.insert(self._args, { name = name, required = required == true })
+    table.insert(self._args, {
+        name     = name,
+        required = required == true,
+        type     = "string",
+        label    = name,
+    })
+    return self
+end
+
+--[[--------------------------------------------------------------------
+    :AddArgMeta(name, required, arg_type, label)
+    Full metadata method. arg_type must be one of the supported frontend
+    rendering types: "player","target","team","map","steamid64",
+    "duration","reason","text","string","number","boolean","command"
+--------------------------------------------------------------------]]--
+function Executor:AddArgMeta(name, required, arg_type, label)
+    table.insert(self._args, {
+        name     = name,
+        required = required == true,
+        type     = arg_type or "string",
+        label    = label or name,
+    })
     return self
 end
 
@@ -70,6 +95,33 @@ function Executor:Execute(payload)
         GModPanel.Error("Executor '", self._type, "' error: ", tostring(err))
     end
     return ok, ok and nil or tostring(err)
+end
+
+--[[--------------------------------------------------------------------
+    Registry Builder
+    Returns a JSON array of all registered executor definitions so the
+    heartbeat can ship the registry to the Worker.
+--------------------------------------------------------------------]]--
+
+function GModPanel.BuildRegistry()
+    local list = {}
+    for cmd_type, executor in pairs(handlers) do
+        local args = {}
+        for _, arg in ipairs(executor._args) do
+            table.insert(args, {
+                name     = arg.name,
+                required = arg.required,
+                type     = arg.type or "string",
+                label    = arg.label or arg.name,
+            })
+        end
+        table.insert(list, {
+            type        = cmd_type,
+            description = executor._description or "",
+            args        = args,
+        })
+    end
+    return list
 end
 
 --[[--------------------------------------------------------------------

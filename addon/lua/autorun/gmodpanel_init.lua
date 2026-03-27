@@ -43,6 +43,7 @@ include("gmodpanel/sv_netmessages.lua") -- Net message declarations
 --------------------------------------------------------------------]]--
 
 include("gmodpanel/sv_commands.lua")
+include("gmodpanel/sv_config.lua")    -- Remote config executor
 
 --[[--------------------------------------------------------------------
     Auto-load user command scripts from gmodpanel/commands/

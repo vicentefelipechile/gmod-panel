@@ -1,0 +1,160 @@
+/* =========================================================================
+   styles/server-config.css — Server configuration panel styles
+   ========================================================================= */
+
+/* --- Two-column grid layout --- */
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 900px) {
+  .config-grid { grid-template-columns: 1fr; }
+}
+
+.config-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* --- Section card body padding --- */
+.config-section { padding: 0; }
+.config-section .card-header {
+  padding: 16px 20px 0;
+  margin-bottom: 14px;
+}
+.config-section-body {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Toggle switch --- */
+.config-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.config-toggle-row:first-child { border-top: none; }
+
+.config-toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.toggle-switch input { display: none; }
+
+.toggle-track {
+  display: block;
+  width: 40px;
+  height: 22px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-accent);
+  border-radius: 11px;
+  transition: background var(--t), border-color var(--t);
+  position: relative;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform var(--t), background var(--t);
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: var(--orange-dim);
+  border-color: var(--orange);
+}
+.toggle-switch input:checked + .toggle-track .toggle-thumb {
+  background: var(--orange);
+  transform: translateX(18px);
+}
+
+/* --- Quick Actions grid --- */
+.config-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.config-action-btn {
+  justify-content: center;
+}
+
+/* --- Footer save bar --- */
+.config-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 16px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+/* --- hint text --- */
+.hint { display: flex; align-items: center; gap: 4px; }
+
+/* =========================================================================
+   Command form (server-commands.ts)
+   ========================================================================= */
+
+/* Required arg star */
+.arg-required {
+  color: var(--red);
+  margin-left: 3px;
+  font-size: 11px;
+}
+
+/* Mono inputs (for command arg type) */
+.mono { font-family: var(--font-mono, "JetBrains Mono", "Fira Code", monospace); font-size: 12.5px; }
+
+/* Arg field group spacing */
+.arg-field { margin-bottom: 4px; }
+
+/* Command form card top padding */
+.cmd-form-card > form { padding: 0 0 4px; }
+
+/* --- Sandbox limits compact grid --- */
+.sbox-limits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 700px) {
+  .sbox-limits-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* --- Command log detail pill rendering --- */
+.cmd-detail-key {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.cmd-detail-val {
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
