@@ -20,7 +20,7 @@ function renderServerList() {
   el.innerHTML = servers.map(s => `
     <div class="sidebar-server-item" data-href="/servers/${s.id}">
       <span class="sidebar-server-dot ${s.last_seen && (Date.now() - s.last_seen) < 90000 ? "online" : "offline"}"></span>
-      <span class="truncate">${s.name}</span>
+      <span class="truncate">${s.display_name}</span>
     </div>
   `).join("") || `<div class="text-muted text-sm" style="padding:6px 10px">No servers</div>`;
 }
